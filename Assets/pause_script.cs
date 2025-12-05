@@ -8,17 +8,32 @@ public class pause_script : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            PausePanel.SetActive(!PausePanel.activeSelf);
+            if (PausePanel.activeSelf)
+            {
+                Continue();
+            }
+            else
+            {
+                Pause();
+            }
+
         }
     }
 
+    public void Pause()
+    {
+        PausePanel.SetActive(true);
+        Time.timeScale = 0f;
+    }
     public void Continue()
     {
         PausePanel.SetActive(false);
+        Time.timeScale = 1f;
     }
 
     public void GoMenu()
     {
+        Time.timeScale = 1f;
         SceneManager.LoadScene("Menu");
     }
 }

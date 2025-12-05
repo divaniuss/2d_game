@@ -6,6 +6,7 @@ public class coins_collect : MonoBehaviour
     [SerializeField] private int CoinsCounter;
     [SerializeField] private Text CoinsCounterText;
     [SerializeField] private AudioClip CoinSound;
+    [Range(0f, 1f)] [SerializeField] private float coinVolume = 0.5f;
     private AudioSource audioSource;
 
     void Start()
@@ -21,7 +22,7 @@ public class coins_collect : MonoBehaviour
             CoinsCounterText.text = CoinsCounter.ToString();
             if (this.audioSource != null && this.CoinSound != null)
             {
-                this.audioSource.PlayOneShot(this.CoinSound);
+                this.audioSource.PlayOneShot(this.CoinSound, coinVolume);
             }
             Destroy(collision.gameObject);
         }
