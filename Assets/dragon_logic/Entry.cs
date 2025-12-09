@@ -15,7 +15,7 @@ public class BossStartTrigger : MonoBehaviour
             {
                 bossScript.WakeUpBoss(); // Будим дракона
             }
-
+ 
             if (cameraScript != null && arenaCenterPoint != null)
             {
                 // Говорим камере следить за точкой в центре арены

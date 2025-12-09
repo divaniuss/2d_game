@@ -31,6 +31,11 @@ public class coins_collect : MonoBehaviour
         {
             CoinsCounter += 100;
             CoinsCounterText.text = CoinsCounter.ToString();
+            if (this.audioSource != null && this.CoinSound != null)
+            {
+                this.audioSource.PlayOneShot(this.CoinSound, coinVolume);
+            }
+            Destroy(collision.gameObject);
         }
     }
 }

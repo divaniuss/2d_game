@@ -16,16 +16,23 @@ public class Player_health : MonoBehaviour
 
     private SpriteRenderer spriteRenderer;
     private AudioSource audioSource;
+    private new_camera_move cameraScript;
 
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         audioSource = GetComponent<AudioSource>();
+        cameraScript = Camera.main.GetComponent<new_camera_move>();
     }
 
     public void ApplyDamage(int damageAmount)
     {
         HealthPoints -= damageAmount;
+        
+        if (cameraScript != null)
+        {
+            cameraScript.ShakeCamera(0.1f); 
+        }
 
  
         if (hurtSound != null && audioSource != null)
@@ -53,12 +60,14 @@ public class Player_health : MonoBehaviour
         spriteRenderer.color = Color.white;     
     }
 
-    private void Die()
+     private void Die()
     {
-        // --- 1. ЗВУК СМЕРТИ (НОВОЕ) ---
-        if (dieSound != null && audioSource != null)
+        // --- 1. ЗВУК СМЕРТИ (ИСПРАВЛЕНО) ---
+        // Используем PlayClipAtPoint, чтобы звук играл независимо от игрока
+        if (dieSound != null)
         {
-            audioSource.PlayOneShot(dieSound);
+            // Создает временный объект со звуком в точке гибели
+            AudioSource.PlayClipAtPoint(dieSound, transform.position);
         }
 
         // --- 2. Отключаем управление ---

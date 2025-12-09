@@ -5,6 +5,12 @@ using System.Collections;
 [RequireComponent(typeof(BoxCollider2D))]
 public class dragon_logic : MonoBehaviour
 {
+    [Header("Музыка Босса")] // --- НОВЫЙ РАЗДЕЛ ---
+    [Tooltip("Перетащи сюда AudioSource, в котором лежит музыка босса")]
+    [SerializeField] private AudioSource bossMusicSource; 
+    [Tooltip("За сколько секунд музыка затухнет после смерти")]
+    [SerializeField] private float musicFadeTime = 2f;
+
     [Header("Размер Босса")]
     [Tooltip("1 = стандарт, 1.5 = больше, 2 = огромный)")]
     [SerializeField] private float bodyScale = 1.5f;
@@ -12,7 +18,7 @@ public class dragon_logic : MonoBehaviour
     [Header("Характеристики")]
     [SerializeField] private int HealthPoints = 20;
     
-    [Header("Настройки Старта Битвы")] // --- НОВЫЙ РАЗДЕЛ ---
+    [Header("Настройки Старта Битвы")] 
     [Tooltip("Триггер (зона), куда босс должен прыгнуть при появлении")]
     [SerializeField] private BossZoneTrigger startingZone; 
     [SerializeField] private float entryJumpHeight = 3f;   
@@ -82,9 +88,19 @@ public class dragon_logic : MonoBehaviour
 
     private ZoneType currentZone = ZoneType.Ground; 
     private BossZoneTrigger targetTrigger = null; 
-
+    [SerializeField] private string bossID = "Level1_Dragon";
     void Start()
     {
+        if (GameSession.GetInt(bossID) == 1) 
+        {
+            if (arena_center != null) Destroy(arena_center); 
+            if (arena_stena != null) Destroy(arena_stena);
+            
+
+            Destroy(gameObject);
+            return; // Выходим, чтобы остальной код не сработал
+        }
+
         anim = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>(); 
         col = GetComponent<BoxCollider2D>(); 
@@ -174,12 +190,17 @@ public class dragon_logic : MonoBehaviour
         {
             if (startingZone != null)
             {
+                // 1. ВКЛЮЧАЕМ МУЗЫКУ БОССА
+                if (bossMusicSource != null)
+                {
+                    bossMusicSource.Play();
+                }
                 StartCoroutine(EnterArenaRoutine());
             }
             else
             {
-                Debug.LogError("Не назначен Starting Zone в инспекторе босса!");
-                currentState = BossState.Idle; // Аварийный запуск
+                Debug.LogError("No Starting Zone!");
+                currentState = BossState.Idle; 
             }
         }
     }
@@ -431,8 +452,35 @@ public class dragon_logic : MonoBehaviour
         if (anim != null) anim.SetTrigger("Die");
         Collider2D col = GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
-        Destroy(gameObject, 1.5f);
-        Destroy(arena_stena);
-        Destroy(arena_center);
+
+        // ЗАПУСКАЕМ ЗАТУХАНИЕ МУЗЫКИ
+        if (bossMusicSource != null)
+        {
+            StartCoroutine(FadeOutBossMusic());
+        }
+
+        if (arena_center != null) Destroy(arena_center); 
+        if (arena_stena != null) Destroy(arena_stena);
+        
+
+        Destroy(gameObject, 1.5f + musicFadeTime); 
+        GameSession.SetInt(bossID, 1);
+    }
+
+    // --- НОВАЯ КОРУТИНА ДЛЯ ПЛАВНОГО ЗАТУХАНИЯ ---
+    IEnumerator FadeOutBossMusic()
+    {
+        float startVolume = bossMusicSource.volume;
+        float timer = 0f;
+
+        while (timer < musicFadeTime)
+        {
+            timer += Time.deltaTime;
+            bossMusicSource.volume = Mathf.Lerp(startVolume, 0f, timer / musicFadeTime);
+            yield return null;
+        }
+
+        bossMusicSource.Stop();
+        bossMusicSource.volume = startVolume; // Возвращаем громкость (на всякий случай)
     }
 }
