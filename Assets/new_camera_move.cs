@@ -1,5 +1,5 @@
 using UnityEngine;
-using System.Collections; // Нужно для корутин
+using System.Collections;
 
 public class new_camera_move : MonoBehaviour
 {
@@ -11,16 +11,22 @@ public class new_camera_move : MonoBehaviour
     [SerializeField] private float minX = -10f;
     [SerializeField] private float maxX = 400f;
 
-    [Header("Настройки Тряски")] // <--- НОВЫЙ РАЗДЕЛ
-    [SerializeField] private float shakeMagnitude = 0.3f; // Сила тряски
+    [Header("Настройки Тряски")]
+    [SerializeField] private float shakeMagnitude = 0.3f;
 
     private Vector3 velocity = Vector3.zero;
     private Transform originalTarget;
-    private Vector3 shakeOffset = Vector3.zero; // Смещение от тряски
+    private Vector3 shakeOffset = Vector3.zero; 
+    
+    // ЭТО ГЛАВНОЕ: Координаты "виртуальной" камеры, которая не трясется
+    private Vector3 logicalPosition; 
 
     void Start()
     {
         if (player != null) originalTarget = player;
+        
+        // Запоминаем стартовую позицию
+        logicalPosition = transform.position;
     }
 
     void LateUpdate()
@@ -28,24 +34,31 @@ public class new_camera_move : MonoBehaviour
         if (player == null && originalTarget != null) player = originalTarget;
         if (player == null) return;
 
-        Vector3 targetPosition = new Vector3(player.position.x, transform.position.y, transform.position.z);
+        // 1. 
+        // ВАЖНО: Мы берем Y от logicalPosition, а не от transform.position. 
+        // Это гарантирует, что тряска не собьет высоту камеры.
+        Vector3 targetPosition = new Vector3(player.position.x, logicalPosition.y, transform.position.z);
+        
+        // Ограничиваем X
         targetPosition.x = Mathf.Clamp(targetPosition.x, minX, maxX);
         
-        // 1. Считаем плавную позицию
-        Vector3 smoothedPos = Vector3.SmoothDamp(transform.position, targetPosition, ref velocity, smoothTime);
+        // 2. Плавно двигаем "призрака" (SmoothDamp обновляет переменную logicalPosition)
+        logicalPosition = Vector3.SmoothDamp(logicalPosition, targetPosition, ref velocity, smoothTime);
         
-        // 2. Добавляем к ней тряску (shakeOffset)
-        transform.position = smoothedPos + shakeOffset;
+        // 3. А теперь ставим реальную камеру на место призрака + тряска
+        transform.position = logicalPosition + shakeOffset;
     }
 
     public void ChangeTarget(Transform newTarget)
     {
-        player = newTarget; 
+        player = newTarget;
+        // Когда меняем цель, можно обновить logicalPosition, чтобы не было рывка
+        // Но SmoothDamp и так справится
     }
 
-    // --- НОВЫЙ ПУБЛИЧНЫЙ МЕТОД: ВЫЗВАТЬ ТРЯСКУ ---
     public void ShakeCamera(float duration = 0.2f)
     {
+        StopAllCoroutines();
         StartCoroutine(ShakeRoutine(duration));
     }
 
@@ -55,8 +68,6 @@ public class new_camera_move : MonoBehaviour
 
         while (elapsed < duration)
         {
-            // Генерируем случайную точку внутри сферы радиусом shakeMagnitude
-            // Используем только X и Y, Z не трогаем
             float x = Random.Range(-1f, 1f) * shakeMagnitude;
             float y = Random.Range(-1f, 1f) * shakeMagnitude;
 
@@ -66,7 +77,6 @@ public class new_camera_move : MonoBehaviour
             yield return null;
         }
 
-        // Возвращаем камеру на место
         shakeOffset = Vector3.zero;
     }
 }

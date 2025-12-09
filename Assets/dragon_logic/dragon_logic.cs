@@ -434,7 +434,7 @@ public class dragon_logic : MonoBehaviour
             if (anim != null) anim.SetTrigger("Hurt");
             PlaySound(HurtSound, hurtVolume); 
 
-            if (HealthPoints <= 5 && !isRageMode)
+            if (HealthPoints <= 3 && !isRageMode)
             {
                 isRageMode = true;
                 shootInterval /= 2f; 
