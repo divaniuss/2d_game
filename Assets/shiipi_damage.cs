@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class shiipi_damage : MonoBehaviour
 {
-    [SerializeField] private int damage = 3;
+    [SerializeField] private int damage = 5;
 
      void OnTriggerEnter2D(Collider2D collision)
     {

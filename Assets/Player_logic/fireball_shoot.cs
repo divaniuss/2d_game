@@ -17,7 +17,7 @@ public class fireball_shoot : MonoBehaviour
     [Header("Визуал Арбалета")]
     [Tooltip("Объект арбалета СО стрелой")]
     [SerializeField] private GameObject CrossbowWithArrow;
-    [Tooltip("Объект арбалета БЕЗ стрелы")]
+    [Tooltip("Объект арбалета БЕЗ стрелы")] 
     [SerializeField] private GameObject CrossbowEmpty;
 
     [Header("Настройки Физики")]
@@ -33,6 +33,9 @@ public class fireball_shoot : MonoBehaviour
     
     [Tooltip("Через сколько секунд после выстрела начать проигрывать звук перезарядки")]
     [SerializeField] private float ReloadStartDelay = 0.5f; 
+
+    [SerializeField] private AudioClip crossbowSound; 
+    [Range(0f, 1f)] [SerializeField] private float crossbowVolume = 1f;
 
     private float shootTimer = 0f;
 
@@ -79,6 +82,11 @@ public class fireball_shoot : MonoBehaviour
     // --- НОВЫЙ МЕТОД: ВЫЗЫВАЕТСЯ, КОГДА ПОДБИРАЕМ АРБАЛЕТ ---
     public void PickUpCrossbow()
     {
+
+        if (crossbowSound != null)
+        {
+            AudioSource.PlayClipAtPoint(crossbowSound, transform.position, crossbowVolume);
+        }
         hasWeapon = true; // Разрешаем стрельбу
         UpdateCrossbowVisuals(true); // Показываем арбалет в руках
     }
